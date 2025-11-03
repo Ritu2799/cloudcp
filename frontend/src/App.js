@@ -114,7 +114,7 @@ function App() {
 
   // Load predictions on mount
   useEffect(() => {
-    fetchPredictions('catboost');
+    fetchPredictions('catboost', new Date());
   }, []);
 
   // Prepare chart data
