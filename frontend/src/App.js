@@ -207,6 +207,60 @@ function App() {
 
       {/* Main Content */}
       <main className="main-content">
+        {/* Next Festival Alert */}
+        {nextFestival && nextFestival.festival_name && (
+          <Card className="next-festival-card" data-testid="next-festival-card">
+            <CardContent className="festival-alert-content">
+              <div className="festival-alert-icon">
+                <Calendar className="alert-icon-large" />
+              </div>
+              <div className="festival-alert-details">
+                <div className="festival-alert-header">
+                  <h3 className="festival-alert-title">🎉 Upcoming Festival Alert</h3>
+                  <Badge className="days-badge">{nextFestival.days_until} days away</Badge>
+                </div>
+                <p className="festival-name-large">{nextFestival.festival_name}</p>
+                <p className="festival-date">{format(new Date(nextFestival.date), 'EEEE, MMMM dd, yyyy')}</p>
+                
+                <div className="festival-metrics">
+                  <div className="festival-metric-item">
+                    <Activity className="festival-metric-icon" />
+                    <div>
+                      <div className="festival-metric-label">Avg Traffic</div>
+                      <div className="festival-metric-value">{nextFestival.avg_load}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="festival-metric-item">
+                    <TrendingUp className="festival-metric-icon peak" />
+                    <div>
+                      <div className="festival-metric-label">Peak Load</div>
+                      <div className="festival-metric-value peak">{nextFestival.peak_load}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="festival-metric-item">
+                    <Server className="festival-metric-icon instances" />
+                    <div>
+                      <div className="festival-metric-label">Recommended</div>
+                      <div className="festival-metric-value instances">{nextFestival.recommended_instances} instances</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button 
+                  onClick={() => handleDateChange(new Date(nextFestival.date))}
+                  className="view-festival-btn"
+                  data-testid="view-festival-btn"
+                >
+                  <CalendarDays className="btn-icon" />
+                  View Festival Predictions
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Metrics Cards */}
         <div className="metrics-grid" data-testid="metrics-grid">
           <Card className="metric-card">
