@@ -30,6 +30,23 @@ function App() {
     festivals: 0
   });
 
+  // Fetch next upcoming festival
+  const fetchNextFestival = async (modelName) => {
+    try {
+      const response = await axios.get(`${API}/next-festival`, {
+        params: { model_name: modelName }
+      });
+      
+      if (response.data.festival_name) {
+        setNextFestival(response.data);
+      } else {
+        setNextFestival(null);
+      }
+    } catch (error) {
+      console.error('Error fetching next festival:', error);
+    }
+  };
+
   // Fetch 24-hour predictions
   const fetchPredictions = async (modelName, startDate = null) => {
     setLoading(true);
