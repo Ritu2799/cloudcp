@@ -233,45 +233,54 @@ def get_aws_autoscaling_client():
     return None
 
 def scale_ec2_instances(predicted_load: float, asg_name: str) -> Dict[str, Any]:
-    """Scale EC2 Auto Scaling Group based on predicted load"""
+    """Scale EC2 Auto Scaling Group based on predicted load
+    
+    Scaling Logic:
+    - < 700: 1 instance
+    - 700-1400: 2 instances
+    - 1400-2100: 3 instances
+    - 2100-3000: 4 instances
+    - 3000-5000: 5 instances
+    - > 5000: 10 instances
+    """
     try:
         client = get_aws_autoscaling_client()
+        
+        # Calculate required instances based on traffic load
+        if predicted_load < 700:
+            desired = 1
+            max_size = 2
+        elif predicted_load < 1400:
+            desired = 2
+            max_size = 3
+        elif predicted_load < 2100:
+            desired = 3
+            max_size = 5
+        elif predicted_load < 3000:
+            desired = 4
+            max_size = 6
+        elif predicted_load < 5000:
+            desired = 5
+            max_size = 8
+        else:
+            desired = 10
+            max_size = 15
         
         if not client:
             # Mock mode
             logger.info(f"[MOCK] AWS credentials not provided")
-            
-            # Calculate required instances
-            if predicted_load > 5000:
-                desired = 10
-            elif predicted_load > 3000:
-                desired = 5
-            elif predicted_load > 1500:
-                desired = 3
-            else:
-                desired = 2
             
             return {
                 'success': True,
                 'mode': 'mock',
                 'predicted_load': predicted_load,
                 'desired_capacity': desired,
-                'message': f'[MOCK] Would scale to {desired} instances for load {predicted_load:.0f}'
+                'max_size': max_size,
+                'message': f'[MOCK] Would scale to {desired} instances for load {predicted_load:.0f}',
+                'scaling_logic': f'Traffic: {predicted_load:.0f} → {desired} instances'
             }
         
         # Real AWS scaling
-        if predicted_load > 5000:
-            desired = 10
-            max_size = 15
-        elif predicted_load > 3000:
-            desired = 5
-            max_size = 10
-        elif predicted_load > 1500:
-            desired = 3
-            max_size = 5
-        else:
-            desired = 2
-            max_size = 3
         
         response = client.set_desired_capacity(
             AutoScalingGroupName=asg_name,
