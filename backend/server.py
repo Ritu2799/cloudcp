@@ -491,6 +491,67 @@ async def get_models():
         "default": "catboost"
     }
 
+@api_router.get("/next-festival")
+async def get_next_festival(model_name: str = 'catboost'):
+    """Get next upcoming festival with predictions"""
+    try:
+        today = datetime.now()
+        
+        # Look for next festival within next 60 days
+        for days_ahead in range(1, 61):
+            check_date = today + timedelta(days=days_ahead)
+            date_str = check_date.strftime('%Y-%m-%d')
+            
+            festival_info = check_festival_calendarific(date_str)
+            
+            if festival_info['is_festival'] == 1:
+                # Found next festival, get 24h predictions
+                predictions = []
+                for hour in range(24):
+                    timestamp = check_date.replace(hour=hour, minute=0, second=0, microsecond=0)
+                    pred = predict_traffic(timestamp, model_name)
+                    predictions.append(pred)
+                
+                # Calculate metrics
+                loads = [p['predicted_load'] for p in predictions]
+                avg_load = sum(loads) / len(loads)
+                peak_load = max(loads)
+                
+                # Recommended instances based on peak load
+                if peak_load > 5000:
+                    recommended_instances = 10
+                elif peak_load > 3000:
+                    recommended_instances = 5
+                elif peak_load > 1500:
+                    recommended_instances = 3
+                else:
+                    recommended_instances = 2
+                
+                return {
+                    'festival_name': festival_info['festival_name'],
+                    'date': date_str,
+                    'days_until': days_ahead,
+                    'avg_load': round(avg_load),
+                    'peak_load': round(peak_load),
+                    'recommended_instances': recommended_instances,
+                    'predictions': predictions
+                }
+        
+        # No festival found in next 60 days
+        return {
+            'festival_name': None,
+            'date': None,
+            'days_until': None,
+            'avg_load': 0,
+            'peak_load': 0,
+            'recommended_instances': 0,
+            'predictions': []
+        }
+        
+    except Exception as e:
+        logger.error(f"Next festival error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Original routes
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
