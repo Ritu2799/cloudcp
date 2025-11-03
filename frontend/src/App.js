@@ -133,6 +133,7 @@ function App() {
   // Load predictions on mount
   useEffect(() => {
     fetchPredictions('catboost', new Date());
+    fetchNextFestival('catboost');
   }, []);
 
   // Prepare chart data
