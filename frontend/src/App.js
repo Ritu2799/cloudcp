@@ -10,7 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { Toaster, toast } from 'sonner';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
+import FestivalCalendar from '@/components/FestivalCalendar';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -18,6 +20,7 @@ const API = `${BACKEND_URL}/api`;
 function App() {
   const [predictions, setPredictions] = useState([]);
   const [selectedModel, setSelectedModel] = useState('catboost');
+  const [activeTab, setActiveTab] = useState('predictions');
   const [loading, setLoading] = useState(false);
   const [scalingResult, setScalingResult] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
