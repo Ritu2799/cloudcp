@@ -119,6 +119,7 @@ function App() {
   const handleModelChange = (model) => {
     setSelectedModel(model);
     fetchPredictions(model, selectedDate);
+    fetchNextFestival(model);
   };
 
   // Handle date change
