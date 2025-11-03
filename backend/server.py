@@ -586,13 +586,16 @@ async def get_next_festival(model_name: str = 'catboost'):
 
 @api_router.get("/festivals/2025")
 async def get_2025_festivals(model_name: str = 'catboost'):
-    """Get all 2025 festivals with predictions"""
+    """Get all 2025 major festivals with predictions and traffic spikes"""
     try:
         festivals_with_predictions = []
         
-        # Get all 2025 festivals from hardcoded data
-        for date_str, festival_name in HARDCODED_FESTIVALS.items():
+        # Get all 2025 festivals from INDIAN_FESTIVALS
+        for date_str, festival_data in INDIAN_FESTIVALS.items():
             if date_str.startswith('2025'):
+                festival_name = festival_data['name']
+                boost = festival_data['boost']
+                
                 # Parse date
                 festival_date = datetime.strptime(date_str, '%Y-%m-%d')
                 
@@ -607,6 +610,7 @@ async def get_2025_festivals(model_name: str = 'catboost'):
                 loads = [p['predicted_load'] for p in predictions]
                 avg_load = sum(loads) / len(loads)
                 peak_load = max(loads)
+                peak_hour = predictions[loads.index(peak_load)]['hour']
                 
                 # Recommended instances
                 if peak_load < 700:
@@ -625,8 +629,8 @@ async def get_2025_festivals(model_name: str = 'catboost'):
                 # Try to find 2024 same festival for comparison
                 previous_year_data = None
                 date_2024 = date_str.replace('2025', '2024')
-                if date_2024 in HARDCODED_FESTIVALS and HARDCODED_FESTIVALS[date_2024] == festival_name:
-                    # Get 2024 predictions (simulated as historical data)
+                if date_2024 in INDIAN_FESTIVALS and INDIAN_FESTIVALS[date_2024]['name'] == festival_name:
+                    # Get 2024 predictions (as historical data)
                     prev_date = datetime.strptime(date_2024, '%Y-%m-%d')
                     prev_predictions = []
                     for hour in range(24):
@@ -650,8 +654,10 @@ async def get_2025_festivals(model_name: str = 'catboost'):
                     'date': date_str,
                     'day_of_week': festival_date.strftime('%A'),
                     'month': festival_date.strftime('%B'),
+                    'boost': boost,
                     'avg_load': round(avg_load),
                     'peak_load': round(peak_load),
+                    'peak_hour': peak_hour,
                     'recommended_instances': recommended_instances,
                     'previous_year': previous_year_data,
                     'predictions': predictions
@@ -668,6 +674,98 @@ async def get_2025_festivals(model_name: str = 'catboost'):
         
     except Exception as e:
         logger.error(f"2025 festivals error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/festivals/2026")
+async def get_2026_festivals(model_name: str = 'catboost'):
+    """Get all 2026 major festivals with predictions and traffic spikes"""
+    try:
+        festivals_with_predictions = []
+        
+        # Get all 2026 festivals from INDIAN_FESTIVALS
+        for date_str, festival_data in INDIAN_FESTIVALS.items():
+            if date_str.startswith('2026'):
+                festival_name = festival_data['name']
+                boost = festival_data['boost']
+                
+                # Parse date
+                festival_date = datetime.strptime(date_str, '%Y-%m-%d')
+                
+                # Get 24-hour predictions for this festival
+                predictions = []
+                for hour in range(24):
+                    timestamp = festival_date.replace(hour=hour, minute=0, second=0, microsecond=0)
+                    pred = predict_traffic(timestamp, model_name)
+                    predictions.append(pred)
+                
+                # Calculate metrics
+                loads = [p['predicted_load'] for p in predictions]
+                avg_load = sum(loads) / len(loads)
+                peak_load = max(loads)
+                peak_hour = predictions[loads.index(peak_load)]['hour']
+                
+                # Recommended instances
+                if peak_load < 700:
+                    recommended_instances = 1
+                elif peak_load < 1400:
+                    recommended_instances = 2
+                elif peak_load < 2100:
+                    recommended_instances = 3
+                elif peak_load < 3000:
+                    recommended_instances = 4
+                elif peak_load < 5000:
+                    recommended_instances = 5
+                else:
+                    recommended_instances = 10
+                
+                # Try to find 2025 same festival for comparison
+                previous_year_data = None
+                date_2025 = date_str.replace('2026', '2025')
+                if date_2025 in INDIAN_FESTIVALS and INDIAN_FESTIVALS[date_2025]['name'] == festival_name:
+                    # Get 2025 predictions (as historical data)
+                    prev_date = datetime.strptime(date_2025, '%Y-%m-%d')
+                    prev_predictions = []
+                    for hour in range(24):
+                        timestamp = prev_date.replace(hour=hour, minute=0, second=0, microsecond=0)
+                        pred = predict_traffic(timestamp, model_name)
+                        prev_predictions.append(pred)
+                    
+                    prev_loads = [p['predicted_load'] for p in prev_predictions]
+                    prev_avg_load = sum(prev_loads) / len(prev_loads)
+                    prev_peak_load = max(prev_loads)
+                    
+                    previous_year_data = {
+                        'date': date_2025,
+                        'avg_load': round(prev_avg_load),
+                        'peak_load': round(prev_peak_load),
+                        'growth_rate': round(((avg_load - prev_avg_load) / prev_avg_load) * 100, 2) if prev_avg_load > 0 else 0
+                    }
+                
+                festivals_with_predictions.append({
+                    'festival_name': festival_name,
+                    'date': date_str,
+                    'day_of_week': festival_date.strftime('%A'),
+                    'month': festival_date.strftime('%B'),
+                    'boost': boost,
+                    'avg_load': round(avg_load),
+                    'peak_load': round(peak_load),
+                    'peak_hour': peak_hour,
+                    'recommended_instances': recommended_instances,
+                    'previous_year': previous_year_data,
+                    'predictions': predictions
+                })
+        
+        # Sort by date
+        festivals_with_predictions.sort(key=lambda x: x['date'])
+        
+        return {
+            'year': 2026,
+            'total_festivals': len(festivals_with_predictions),
+            'festivals': festivals_with_predictions
+        }
+        
+    except Exception as e:
+        logger.error(f"2026 festivals error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/aws/instances")
