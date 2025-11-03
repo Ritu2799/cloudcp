@@ -404,12 +404,18 @@ def predict_traffic(timestamp: datetime, model_name: str = 'catboost') -> Dict[s
     # Ensure positive prediction
     prediction = max(prediction, 50.0)
     
+    # Apply festival boost multiplier
+    boost = festival_info.get('boost', 1.0)
+    if boost > 1.0:
+        prediction = prediction * boost
+    
     return {
         'timestamp': timestamp.isoformat(),
         'hour': timestamp.hour,
         'predicted_load': float(prediction),
         'is_festival': festival_info['is_festival'],
         'festival_name': festival_info['festival_name'],
+        'boost': boost,
         'model': model_name
     }
 
