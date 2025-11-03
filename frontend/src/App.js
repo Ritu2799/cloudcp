@@ -210,6 +210,15 @@ function App() {
 
       {/* Main Content */}
       <main className="main-content">
+        {/* Tabs for different views */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="predictions">24-Hour Predictions</TabsTrigger>
+            <TabsTrigger value="festivals">Festival Calendar</TabsTrigger>
+          </TabsList>
+
+          {/* Tab: 24-Hour Predictions */}
+          <TabsContent value="predictions" className="space-y-6">
         {/* Next Festival Alert */}
         {nextFestival && nextFestival.festival_name && (
           <Card className="next-festival-card" data-testid="next-festival-card">
