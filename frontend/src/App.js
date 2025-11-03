@@ -30,12 +30,12 @@ function App() {
   });
 
   // Fetch 24-hour predictions
-  const fetchPredictions = async (modelName) => {
+  const fetchPredictions = async (modelName, startDate = null) => {
     setLoading(true);
     try {
-      const now = new Date();
+      const predictDate = startDate || selectedDate;
       const response = await axios.post(`${API}/predict`, {
-        start_time: now.toISOString(),
+        start_time: predictDate.toISOString(),
         hours: 24,
         model_name: modelName
       });
@@ -61,7 +61,7 @@ function App() {
         festivals
       });
       
-      toast.success(`Predictions loaded with ${modelName.toUpperCase()} model`);
+      toast.success(`Predictions loaded for ${format(predictDate, 'MMM dd, yyyy')} with ${modelName.toUpperCase()}`);
     } catch (error) {
       console.error('Error fetching predictions:', error);
       toast.error('Failed to fetch predictions');
