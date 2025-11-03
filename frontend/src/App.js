@@ -490,6 +490,13 @@ function App() {
             </CardContent>
           </Card>
         )}
+          </TabsContent>
+
+          {/* Tab: Festival Calendar */}
+          <TabsContent value="festivals">
+            <FestivalCalendar selectedModel={selectedModel} />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
