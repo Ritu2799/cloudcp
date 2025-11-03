@@ -499,10 +499,14 @@ async def root():
 
 @api_router.get("/health")
 async def health_check():
+    aws_configured = bool(os.environ.get('AWS_ACCESS_KEY_ID') and os.environ.get('AWS_SECRET_ACCESS_KEY'))
     return {
         "status": "healthy",
         "models_loaded": MODELS is not None,
-        "feature_columns": len(FEATURE_COLUMNS) if FEATURE_COLUMNS else 0
+        "feature_columns": len(FEATURE_COLUMNS) if FEATURE_COLUMNS else 0,
+        "aws_configured": aws_configured,
+        "aws_region": os.environ.get('AWS_REGION', 'not-set'),
+        "total_festivals_2025": len([k for k in HARDCODED_FESTIVALS.keys() if k.startswith('2025')])
     }
 
 @api_router.post("/predict", response_model=List[PredictionResponse])
